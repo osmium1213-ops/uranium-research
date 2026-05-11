@@ -1,0 +1,1986 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+<meta name="theme-color" content="#0a0e14" />
+<title>U-Stream Research · 鈾礦上游深度研究</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg: #0a0e14;
+  --bg-card: #131820;
+  --bg-elev: #1a2029;
+  --bg-elev-2: #1e2530;
+  --border: #232a36;
+  --border-bright: #2f3845;
+
+  --text: #e6edf3;
+  --text-dim: #8b96a8;
+  --text-faint: #5a6478;
+
+  --green: #00d09c;
+  --green-bg: rgba(0, 208, 156, 0.12);
+  --red: #ff4d6d;
+  --red-bg: rgba(255, 77, 109, 0.12);
+  --gold: #ffb547;
+  --gold-bg: rgba(255, 181, 71, 0.12);
+  --blue: #4d8eff;
+  --blue-bg: rgba(77, 142, 255, 0.12);
+  --purple: #b574ff;
+  --purple-bg: rgba(181, 116, 255, 0.12);
+
+  --ccj: #4d8eff;
+  --leu: #ffb547;
+  --uuuu: #ff7a59;
+
+  --font: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang TC', 'Microsoft JhengHei', sans-serif;
+  --mono: 'JetBrains Mono', 'SF Mono', Menlo, monospace;
+
+  --radius: 14px;
+  --radius-sm: 10px;
+}
+
+html { -webkit-text-size-adjust: 100%; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font);
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  min-height: 100vh;
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+button { font-family: inherit; cursor: pointer; border: none; background: none; color: inherit; }
+
+/* ============ APP CONTAINER ============ */
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  background: var(--bg);
+  min-height: 100vh;
+}
+
+@media (min-width: 768px) { .app { max-width: 720px; } }
+@media (min-width: 1024px) { .app { max-width: 1100px; padding: 0 16px; } }
+
+/* ============ HEADER ============ */
+.header {
+  padding: 18px 20px 14px;
+  position: sticky;
+  top: 0;
+  background: rgba(10, 14, 20, 0.92);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  z-index: 100;
+  border-bottom: 1px solid var(--border);
+}
+
+.header-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.logo-dot {
+  width: 30px;
+  height: 30px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, var(--gold), var(--uuuu));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--bg);
+}
+
+.logo-text { line-height: 1.15; }
+.logo-text .title { font-weight: 700; font-size: 14px; letter-spacing: -0.01em; }
+.logo-text .sub { font-size: 10px; color: var(--text-faint); font-family: var(--mono); }
+
+.header-status {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
+  color: var(--green);
+  background: var(--green-bg);
+  padding: 4px 8px;
+  border-radius: 100px;
+  font-weight: 600;
+}
+
+.pulse-dot {
+  width: 5px; height: 5px;
+  background: var(--green);
+  border-radius: 50%;
+  animation: pulse 1.8s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.4; transform: scale(0.85); }
+}
+
+/* ============ COMPANY TABS ============ */
+.tabs {
+  display: flex;
+  gap: 6px;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 2px;
+}
+
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  flex: 0 0 auto;
+  padding: 9px 14px;
+  border-radius: 100px;
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  transition: all 0.2s;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-dim);
+  white-space: nowrap;
+}
+
+.tab .tab-tick {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 5px;
+  font-weight: 700;
+}
+
+.tab[data-co="CCJ"] .tab-tick { background: var(--blue-bg); color: var(--blue); }
+.tab[data-co="LEU"] .tab-tick { background: var(--gold-bg); color: var(--gold); }
+.tab[data-co="UUUU"] .tab-tick { background: rgba(255,122,89,0.15); color: var(--uuuu); }
+.tab[data-co="TREND"] .tab-tick { background: var(--purple-bg); color: var(--purple); }
+
+.tab.active {
+  background: var(--text);
+  color: var(--bg);
+  border-color: var(--text);
+}
+
+.tab.active .tab-tick { background: rgba(10,14,20,0.15); color: var(--bg); }
+
+/* ============ CONTENT ============ */
+.content {
+  padding: 0 20px 32px;
+}
+
+.page { display: none; }
+.page.active { display: block; animation: fadeIn 0.3s; }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ============ COMPANY HERO ============ */
+.co-hero {
+  padding: 24px 0 20px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 24px;
+}
+
+.co-hero-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 14px;
+}
+
+.co-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 14px;
+  font-family: var(--mono);
+  letter-spacing: -0.02em;
+}
+
+.co-logo-ccj { background: var(--ccj); color: white; }
+.co-logo-leu { background: var(--leu); color: #1a1a1a; }
+.co-logo-uuuu { background: var(--uuuu); color: white; }
+
+.co-name { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; }
+.co-tick { font-family: var(--mono); font-size: 11px; color: var(--text-faint); letter-spacing: 0.04em; margin-top: 2px; }
+
+.co-tagline {
+  font-size: 14px;
+  color: var(--gold);
+  font-style: italic;
+  margin-bottom: 16px;
+}
+
+.co-stats {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (min-width: 768px) { .co-stats { grid-template-columns: repeat(4, 1fr); } }
+
+.co-stat {
+  background: var(--bg-card);
+  padding: 12px 14px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+}
+
+.co-stat .label {
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.co-stat .val {
+  font-family: var(--mono);
+  font-size: 17px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.co-stat .val.up { color: var(--green); }
+.co-stat .val.down { color: var(--red); }
+
+/* ============ SECTION ============ */
+.sect {
+  margin-bottom: 28px;
+}
+
+.sect-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 14px;
+}
+
+.sect-title {
+  font-size: 15px;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.sect-title .icon-box {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  background: var(--bg-elev);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.sect-badge {
+  font-size: 10px;
+  font-family: var(--mono);
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+}
+
+/* ============ TIMELINE ============ */
+.timeline {
+  position: relative;
+  padding-left: 20px;
+}
+
+.timeline::before {
+  content: '';
+  position: absolute;
+  left: 6px;
+  top: 8px;
+  bottom: 8px;
+  width: 2px;
+  background: linear-gradient(180deg, var(--border-bright), var(--border));
+}
+
+.tl-item {
+  position: relative;
+  padding-bottom: 18px;
+}
+
+.tl-item:last-child { padding-bottom: 0; }
+
+.tl-dot {
+  position: absolute;
+  left: -20px;
+  top: 6px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--bg);
+  border: 2px solid var(--border-bright);
+}
+
+.tl-item.crash .tl-dot { border-color: var(--red); background: var(--red); box-shadow: 0 0 0 4px var(--red-bg); }
+.tl-item.surge .tl-dot { border-color: var(--green); background: var(--green); box-shadow: 0 0 0 4px var(--green-bg); }
+.tl-item.major .tl-dot { border-color: var(--gold); background: var(--gold); box-shadow: 0 0 0 4px var(--gold-bg); }
+
+.tl-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+}
+
+.tl-item.crash .tl-card { border-left: 3px solid var(--red); }
+.tl-item.surge .tl-card { border-left: 3px solid var(--green); }
+.tl-item.major .tl-card { border-left: 3px solid var(--gold); }
+
+.tl-date {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  margin-bottom: 4px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.tl-item.crash .tl-date { color: var(--red); }
+.tl-item.surge .tl-date { color: var(--green); }
+.tl-item.major .tl-date { color: var(--gold); }
+
+.tl-impact {
+  font-family: var(--mono);
+  font-size: 10px;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-weight: 700;
+}
+
+.tl-item.crash .tl-impact { background: var(--red-bg); color: var(--red); }
+.tl-item.surge .tl-impact { background: var(--green-bg); color: var(--green); }
+.tl-item.major .tl-impact { background: var(--gold-bg); color: var(--gold); }
+
+.tl-headline {
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 4px;
+  letter-spacing: -0.01em;
+}
+
+.tl-body {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* ============ VALUE CHAIN ============ */
+.chain {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+}
+
+.chain-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.chain-col {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.chain-col-head {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--text-faint);
+  text-transform: uppercase;
+  text-align: center;
+  margin-bottom: 6px;
+  padding-bottom: 6px;
+  border-bottom: 1px dashed var(--border);
+}
+
+.chain-node {
+  background: var(--bg-elev);
+  border-radius: 8px;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  font-size: 12px;
+  text-align: center;
+  line-height: 1.3;
+}
+
+.chain-node.highlight {
+  background: var(--gold-bg);
+  border-color: var(--gold);
+  color: var(--gold);
+  font-weight: 700;
+  position: relative;
+}
+
+.chain-node.highlight::after {
+  content: '★';
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  font-size: 10px;
+  color: var(--gold);
+}
+
+.chain-node .small {
+  display: block;
+  font-size: 9.5px;
+  color: var(--text-faint);
+  font-family: var(--mono);
+  margin-top: 2px;
+}
+
+.chain-node.highlight .small { color: var(--gold); opacity: 0.8; }
+
+.chain-arrow {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  color: var(--text-faint);
+  flex: 0 0 auto;
+  width: 12px;
+}
+
+/* ============ MOAT GRID ============ */
+.moat-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+}
+
+@media (min-width: 768px) { .moat-grid { grid-template-columns: 1fr 1fr; } }
+
+.moat-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px;
+}
+
+.moat-item-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.moat-icon {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+}
+
+.moat-pos .moat-icon { background: var(--green-bg); }
+.moat-neg .moat-icon { background: var(--red-bg); }
+
+.moat-item-title {
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.moat-pos .moat-item-title { color: var(--green); }
+.moat-neg .moat-item-title { color: var(--red); }
+
+.moat-item-body {
+  font-size: 12.5px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* ============ VALUATION TABLE ============ */
+.val-table {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+}
+
+.val-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 11px 14px;
+  border-bottom: 1px solid var(--border);
+}
+
+.val-row:last-child { border-bottom: none; }
+
+.val-row .v-label {
+  font-size: 12.5px;
+  color: var(--text-dim);
+}
+
+.val-row .v-val {
+  font-family: var(--mono);
+  font-size: 13.5px;
+  font-weight: 700;
+  text-align: right;
+}
+
+/* ============ CATALYST TIMELINE ============ */
+.cat-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.cat-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 12px 14px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+}
+
+.cat-when {
+  flex: 0 0 60px;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 700;
+  text-align: center;
+  padding: 4px 0;
+  border-radius: 6px;
+  background: var(--bg-elev);
+  color: var(--text-dim);
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+}
+
+.cat-item.near .cat-when { background: var(--red-bg); color: var(--red); }
+.cat-item.mid .cat-when { background: var(--gold-bg); color: var(--gold); }
+.cat-item.far .cat-when { background: var(--blue-bg); color: var(--blue); }
+
+.cat-content { flex: 1; min-width: 0; }
+
+.cat-title {
+  font-size: 13.5px;
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.cat-desc {
+  font-size: 12px;
+  color: var(--text-dim);
+  line-height: 1.55;
+}
+
+/* ============ TREND CARDS ============ */
+.trend-card {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.trend-head {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.trend-icon-big {
+  width: 36px;
+  height: 36px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+}
+
+.trend-tit {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.trend-sub {
+  font-size: 11px;
+  color: var(--text-faint);
+  margin-top: 2px;
+  font-family: var(--mono);
+}
+
+.trend-body {
+  font-size: 13px;
+  color: var(--text-dim);
+  line-height: 1.65;
+}
+
+.trend-body p { margin-bottom: 8px; }
+.trend-body p:last-child { margin-bottom: 0; }
+
+.trend-body strong { color: var(--text); font-weight: 600; }
+
+/* ============ PRICE CHART (SVG) ============ */
+.chart-wrap {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 14px;
+}
+
+.chart-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.chart-title { font-size: 13px; font-weight: 600; color: var(--text-dim); }
+.chart-meta { font-size: 10px; font-family: var(--mono); color: var(--text-faint); }
+
+.chart-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.chart-legend {
+  display: flex;
+  gap: 14px;
+  margin-top: 10px;
+  font-size: 10.5px;
+  color: var(--text-faint);
+  flex-wrap: wrap;
+}
+
+.chart-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.chart-legend-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+/* ============ COMPARISON ============ */
+.compare-table {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  font-size: 12px;
+}
+
+.compare-row {
+  display: grid;
+  grid-template-columns: 1.2fr 1fr 1fr 1fr;
+  align-items: center;
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--border);
+  gap: 6px;
+}
+
+.compare-row.head {
+  background: var(--bg-elev);
+  font-weight: 700;
+  font-size: 10px;
+  color: var(--text-faint);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.compare-row.head > div:first-child { color: var(--text-dim); }
+
+.compare-row > div {
+  font-family: var(--mono);
+  text-align: center;
+}
+
+.compare-row > div:first-child {
+  text-align: left;
+  font-family: var(--font);
+  font-weight: 500;
+  color: var(--text-dim);
+}
+
+.compare-row:last-child { border-bottom: none; }
+
+.compare-row.head .ccj-h { color: var(--ccj); }
+.compare-row.head .leu-h { color: var(--leu); }
+.compare-row.head .uuuu-h { color: var(--uuuu); }
+
+/* ============ FOOTER ============ */
+.footer {
+  text-align: center;
+  padding: 20px 16px 32px;
+  color: var(--text-faint);
+  font-size: 10.5px;
+  font-family: var(--mono);
+  border-top: 1px solid var(--border);
+  margin-top: 24px;
+}
+
+.disclaimer {
+  margin: 16px 4px 0;
+  padding: 12px 14px;
+  background: rgba(255, 181, 71, 0.06);
+  border: 1px solid rgba(255, 181, 71, 0.2);
+  border-radius: 12px;
+  font-size: 11px;
+  color: var(--text-faint);
+  line-height: 1.6;
+  display: flex;
+  gap: 8px;
+}
+
+.disclaimer-icon { flex-shrink: 0; color: var(--gold); }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ============ HEADER ============ -->
+  <header class="header">
+    <div class="header-top">
+      <div class="logo">
+        <div class="logo-dot">U</div>
+        <div class="logo-text">
+          <div class="title">U-Stream Research</div>
+          <div class="sub">URANIUM · DEEP DIVE · 2026</div>
+        </div>
+      </div>
+      <div class="header-status">
+        <span class="pulse-dot"></span>
+        <span>2026.05</span>
+      </div>
+    </div>
+    <div class="tabs" id="tabs">
+      <button class="tab active" data-co="CCJ"><span class="tab-tick">CCJ</span><span>Cameco</span></button>
+      <button class="tab" data-co="LEU"><span class="tab-tick">LEU</span><span>Centrus</span></button>
+      <button class="tab" data-co="UUUU"><span class="tab-tick">UUUU</span><span>Energy Fuels</span></button>
+      <button class="tab" data-co="TREND"><span class="tab-tick">📊</span><span>產業趨勢</span></button>
+    </div>
+  </header>
+
+  <main class="content">
+
+    <!-- ===================================================== -->
+    <!-- ============== CCJ · CAMECO PAGE ===================== -->
+    <!-- ===================================================== -->
+    <div class="page active" data-page="CCJ">
+
+      <div class="co-hero">
+        <div class="co-hero-head">
+          <div class="co-logo co-logo-ccj">CCJ</div>
+          <div>
+            <div class="co-name">Cameco Corp.</div>
+            <div class="co-tick">NYSE: CCJ · 加拿大 · 1988 IPO</div>
+          </div>
+        </div>
+        <p class="co-tagline">全球最大上市鈾礦商，控制西方核燃料命脈</p>
+        <div class="co-stats">
+          <div class="co-stat"><div class="label">現價 ($)</div><div class="val">116.75</div></div>
+          <div class="co-stat"><div class="label">市值</div><div class="val">~$52B</div></div>
+          <div class="co-stat"><div class="label">5Y 報酬</div><div class="val up">+1,260%</div></div>
+          <div class="co-stat"><div class="label">Beta</div><div class="val">1.6</div></div>
+        </div>
+      </div>
+
+      <!-- HISTORICAL CHART -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">📉</span>歷史價格軌跡</h3>
+          <span class="sect-badge">2007-2026</span>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-head">
+            <span class="chart-title">CCJ 股價歷史</span>
+            <span class="chart-meta">USD · 季度高點</span>
+          </div>
+          <svg class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="ccjGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#4d8eff" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#4d8eff" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <!-- Grid lines -->
+            <line x1="0" y1="55" x2="600" y2="55" stroke="#232a36" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="0" y1="110" x2="600" y2="110" stroke="#232a36" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="0" y1="165" x2="600" y2="165" stroke="#232a36" stroke-width="1" stroke-dasharray="3,3"/>
+            <!-- Price line: 2007 peak ~$55, Fukushima crash to ~$15, decade low ~$8 in 2020, surge to $60 in 2024, then $116 in 2026 -->
+            <path d="M 0 75 L 60 50 L 80 60 L 100 200 L 150 190 L 200 195 L 260 198 L 300 200 L 340 195 L 370 185 L 400 130 L 440 110 L 470 145 L 500 95 L 540 55 L 600 30"
+                  stroke="#4d8eff" stroke-width="2" fill="none"/>
+            <path d="M 0 75 L 60 50 L 80 60 L 100 200 L 150 190 L 200 195 L 260 198 L 300 200 L 340 195 L 370 185 L 400 130 L 440 110 L 470 145 L 500 95 L 540 55 L 600 30 L 600 220 L 0 220 Z"
+                  fill="url(#ccjGrad)"/>
+            <!-- Event markers -->
+            <circle cx="100" cy="200" r="4" fill="#ff4d6d"/>
+            <text x="100" y="218" font-size="9" fill="#ff4d6d" text-anchor="middle" font-family="JetBrains Mono">福島</text>
+
+            <circle cx="300" cy="200" r="4" fill="#ff4d6d"/>
+            <text x="300" y="218" font-size="9" fill="#ff4d6d" text-anchor="middle" font-family="JetBrains Mono">疫情低點</text>
+
+            <circle cx="400" cy="130" r="4" fill="#00d09c"/>
+            <text x="400" y="148" font-size="9" fill="#00d09c" text-anchor="middle" font-family="JetBrains Mono">收購WEC</text>
+
+            <circle cx="540" cy="55" r="4" fill="#ffb547"/>
+            <text x="540" y="48" font-size="9" fill="#ffb547" text-anchor="middle" font-family="JetBrains Mono">$80B合作</text>
+
+            <!-- Y-axis labels -->
+            <text x="4" y="20" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$120</text>
+            <text x="4" y="60" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$80</text>
+            <text x="4" y="115" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$40</text>
+            <text x="4" y="170" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$15</text>
+          </svg>
+          <div class="chart-legend">
+            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#ff4d6d"></span>崩盤事件</div>
+            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#00d09c"></span>策略轉折</div>
+            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#ffb547"></span>重大利多</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TIMELINE -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">📜</span>關鍵歷史事件</h3>
+        </div>
+        <div class="timeline">
+          <div class="tl-item major">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2007.06 <span class="tl-impact">+340%</span></div>
+              <div class="tl-headline">鈾價歷史高峰，CCJ 觸 $55</div>
+              <p class="tl-body">2003-2007 鈾價從 $10/lb 飆至 $137/lb，10 倍漲幅。CCJ 受惠中印核電擴張預期，股價同步飆漲。</p>
+            </div>
+          </div>
+
+          <div class="tl-item crash">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2011.03 <span class="tl-impact">-60%</span></div>
+              <div class="tl-headline">福島核災，10 年寒冬開始</div>
+              <p class="tl-body">日本福島第一核電廠熔毀，全球核電政策大轉彎。鈾價從 $62/lb 一路跌到 2020 年 $35/lb 低點，CCJ 跌至 $8 區間。德國宣布廢核，全球核電產業進入冰河期。</p>
+            </div>
+          </div>
+
+          <div class="tl-item crash">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2017.02 <span class="tl-impact">-13.8%</span></div>
+              <div class="tl-headline">TEPCO 解約事件，單日 -14%</div>
+              <p class="tl-body">東京電力公司片面終止與 CCJ 的長約，原本到 2028 年總值近 9.9 億美元的供應契約作廢。CCJ 提起法律行動。年營收 5% 一夕蒸發。</p>
+            </div>
+          </div>
+
+          <div class="tl-item crash">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2018.07 <span class="tl-impact">關閉旗艦礦</span></div>
+              <p class="tl-body">為求生存，CCJ 暫時關閉全球最大高品位鈾礦 McArthur River（薩斯喀徹溫），改以買進現貨履約。市場一片悲觀。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2023.11 <span class="tl-impact">+22%</span></div>
+              <div class="tl-headline">收購 Westinghouse 49% 股權</div>
+              <p class="tl-body">與 Brookfield 共同收購 Westinghouse Electric，CCJ 從純礦商轉型為西方核燃料循環全鏈玩家（採礦、轉化、燃料製造、反應爐服務）。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2024.01 <span class="tl-impact">鈾價突破 $100</span></div>
+              <p class="tl-body">鈾價時隔 16 年再次突破 $100/lb 大關。AI 算力需求 + COP28 三倍核能宣言 + 俄烏戰後西方脫鉤俄羅斯燃料三重共振。CCJ 突破 $55 阻力。</p>
+            </div>
+          </div>
+
+          <div class="tl-item crash">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2024.02-08 <span class="tl-impact">-40%</span></div>
+              <p class="tl-body">鈾價短線回落至 $80，CCJ 從 $60 跌回 $35 中段，為健康修正。後續再度反彈。</p>
+            </div>
+          </div>
+
+          <div class="tl-item major">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2026.04 <span class="tl-impact">$80B 戰略合作</span></div>
+              <div class="tl-headline">美國商務部官方加持</div>
+              <p class="tl-body">美國商務部與 CCJ + Brookfield + Westinghouse 簽署戰略合作備忘錄，承諾為新一批 Westinghouse 反應爐提供融資與許可支援，總投資管線達 800 億美元。CCJ 衝上 $116 創 25 年新高。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VALUE CHAIN -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">🔗</span>上下游產業鏈位置</h3>
+        </div>
+        <div class="chain">
+          <div class="chain-row">
+            <div class="chain-col">
+              <div class="chain-col-head">上游</div>
+              <div class="chain-node">McArthur River 礦<span class="small">高品位 100x</span></div>
+              <div class="chain-node">Cigar Lake 礦<span class="small">Athabasca盆地</span></div>
+              <div class="chain-node">Inkai (哈薩克)<span class="small">合資 ISL</span></div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-col">
+              <div class="chain-col-head">中游</div>
+              <div class="chain-node highlight">CCJ 自有<span class="small">轉化＋燃料</span></div>
+              <div class="chain-node highlight">Westinghouse<br>49%股權<span class="small">燃料製造</span></div>
+              <div class="chain-node">GLE 雷射濃縮<br>49%股權<span class="small">與Silex合資</span></div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-col">
+              <div class="chain-col-head">下游客戶</div>
+              <div class="chain-node">CEG / VST<span class="small">美國公用</span></div>
+              <div class="chain-node">EDF / KEPCO<span class="small">歐韓電力</span></div>
+              <div class="chain-node">SMR 業者<span class="small">Oklo, NuScale</span></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:var(--text-faint);margin-top:10px;line-height:1.6;">★ 標記為 CCJ 直接持有或控制的環節。CCJ 是極少數同時擁有<strong style="color:var(--gold)">採礦＋轉化＋燃料製造＋濃縮（部分）＋反應爐技術</strong>的西方公司。</p>
+      </section>
+
+      <!-- MOAT -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">🏰</span>護城河 vs 風險</h3>
+        </div>
+        <div class="moat-grid">
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">⚓</div>
+              <div class="moat-item-title">長約定價權</div>
+            </div>
+            <p class="moat-item-body">採用市場連結 + 地板價的混合定價，鈾價漲時享受上行，跌時有 floor 保護。福島後仍能維持獲利的關鍵。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">🏔️</div>
+              <div class="moat-item-title">高品位資源</div>
+            </div>
+            <p class="moat-item-body">McArthur River 品位為全球平均的 100 倍。低成本生產讓 CCJ 在熊市仍能存活，多數同業早已破產。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">🌐</div>
+              <div class="moat-item-title">政治穩定性</div>
+            </div>
+            <p class="moat-item-body">主要資產在加拿大、美國，相較哈薩克（Kazatomprom）、非洲（Orano）地緣風險低很多。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">💎</div>
+              <div class="moat-item-title">Westinghouse 整合</div>
+            </div>
+            <p class="moat-item-body">2023 年收購後，從純大宗商品轉為「全鏈服務商」，獲利穩定度大幅提升，且分享反應爐技術授權金。</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">⚠️</div>
+              <div class="moat-item-title">鈾價週期性</div>
+            </div>
+            <p class="moat-item-body">仍是大宗商品週期股。2011-2020 連續 9 年股價低迷的記憶猶新。下一次黑天鵝（核災、政策反轉）會重演。</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">💰</div>
+              <div class="moat-item-title">估值偏貴</div>
+            </div>
+            <p class="moat-item-body">EV/EBITDA 約 37 倍，已 price in 多年的核電復興預期。如果鈾價 plateau 在 $80，未來 3 年股價只能漲 4%（分析師基準估算）。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CATALYSTS -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">🚀</span>未來催化劑</h3>
+        </div>
+        <div class="cat-grid">
+          <div class="cat-item near">
+            <div class="cat-when">2026<br>H2</div>
+            <div class="cat-content">
+              <div class="cat-title">鈾現貨價挑戰 $125</div>
+              <p class="cat-desc">Citi 分析師預期 2026 年內鈾價達 $100-125/lb。每漲 $10 約對應 CCJ 每股 +$8-12 估值上修。</p>
+            </div>
+          </div>
+          <div class="cat-item near">
+            <div class="cat-when">2026<br>Q4</div>
+            <div class="cat-content">
+              <div class="cat-title">Westinghouse SMR 商業化進度</div>
+              <p class="cat-desc">AP300 SMR 進入 NRC 設計認證程序，首座商業 SMR 可能 2027 動工。</p>
+            </div>
+          </div>
+          <div class="cat-item mid">
+            <div class="cat-when">2027<br>Q1-Q2</div>
+            <div class="cat-content">
+              <div class="cat-title">Inkai 哈薩克產能擴張</div>
+              <p class="cat-desc">與 Kazatomprom 合資的 Inkai 礦場二期擴產，預計新增 ~10% 全球供應。</p>
+            </div>
+          </div>
+          <div class="cat-item far">
+            <div class="cat-when">2028+</div>
+            <div class="cat-content">
+              <div class="cat-title">$80B 反應爐管線開工</div>
+              <p class="cat-desc">美國商務部協議下的新反應爐陸續動工，CCJ 享有「採礦＋燃料＋反應爐」三重抽成。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VALUATION -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">📐</span>關鍵估值指標</h3>
+          <span class="sect-badge">2026 Q1</span>
+        </div>
+        <div class="val-table">
+          <div class="val-row"><span class="v-label">市值</span><span class="v-val">~$52B</span></div>
+          <div class="val-row"><span class="v-label">企業價值 (EV)</span><span class="v-val">$69.3B</span></div>
+          <div class="val-row"><span class="v-label">EV / 2026E EBITDA</span><span class="v-val" style="color:var(--gold)">37x</span></div>
+          <div class="val-row"><span class="v-label">營收 CAGR (2025-2028E)</span><span class="v-val" style="color:var(--green)">+8%</span></div>
+          <div class="val-row"><span class="v-label">EBITDA CAGR (2025-2028E)</span><span class="v-val" style="color:var(--green)">+12%</span></div>
+          <div class="val-row"><span class="v-label">負債/權益比</span><span class="v-val">0.14</span></div>
+          <div class="val-row"><span class="v-label">流動比率</span><span class="v-val">2.47</span></div>
+          <div class="val-row"><span class="v-label">股息殖利率</span><span class="v-val">~0.1%</span></div>
+        </div>
+      </section>
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- ============== LEU · CENTRUS PAGE ==================== -->
+    <!-- ===================================================== -->
+    <div class="page" data-page="LEU">
+
+      <div class="co-hero">
+        <div class="co-hero-head">
+          <div class="co-logo co-logo-leu">LEU</div>
+          <div>
+            <div class="co-name">Centrus Energy</div>
+            <div class="co-tick">NYSE: LEU · 美國 · 2014 上市</div>
+          </div>
+        </div>
+        <p class="co-tagline">美國唯一商業 HALEU 濃縮商，下世代核電燃料的卡關生意</p>
+        <div class="co-stats">
+          <div class="co-stat"><div class="label">現價 ($)</div><div class="val">~206</div></div>
+          <div class="co-stat"><div class="label">市值</div><div class="val">~$4.5B</div></div>
+          <div class="co-stat"><div class="label">5Y 報酬</div><div class="val up">+3,400%</div></div>
+          <div class="co-stat"><div class="label">Beta</div><div class="val">2.5</div></div>
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">📈</span>歷史價格軌跡</h3>
+          <span class="sect-badge">2014-2026</span>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-head">
+            <span class="chart-title">LEU 股價歷史</span>
+            <span class="chart-meta">USD · 從penny stock 到 high-flyer</span>
+          </div>
+          <svg class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="leuGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ffb547" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#ffb547" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <line x1="0" y1="55" x2="600" y2="55" stroke="#232a36" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="0" y1="110" x2="600" y2="110" stroke="#232a36" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="0" y1="165" x2="600" y2="165" stroke="#232a36" stroke-width="1" stroke-dasharray="3,3"/>
+
+            <!-- 2014 IPO ~$10, 一路趴 ~$2-5, 2021/2022 漲到 $50, 2023 翻 $100, 2024 $80, 2025/2026 衝到 $300 -->
+            <path d="M 0 200 L 50 205 L 100 210 L 150 208 L 200 195 L 240 160 L 280 130 L 320 100 L 360 105 L 400 115 L 440 90 L 480 70 L 520 40 L 560 25 L 600 35"
+                  stroke="#ffb547" stroke-width="2" fill="none"/>
+            <path d="M 0 200 L 50 205 L 100 210 L 150 208 L 200 195 L 240 160 L 280 130 L 320 100 L 360 105 L 400 115 L 440 90 L 480 70 L 520 40 L 560 25 L 600 35 L 600 220 L 0 220 Z"
+                  fill="url(#leuGrad)"/>
+
+            <circle cx="0" cy="200" r="4" fill="#ff4d6d"/>
+            <text x="20" y="200" font-size="9" fill="#ff4d6d" font-family="JetBrains Mono">IPO破發</text>
+
+            <circle cx="240" cy="160" r="4" fill="#00d09c"/>
+            <text x="240" y="178" font-size="9" fill="#00d09c" text-anchor="middle" font-family="JetBrains Mono">俄烏戰</text>
+
+            <circle cx="320" cy="100" r="4" fill="#00d09c"/>
+            <text x="320" y="92" font-size="9" fill="#00d09c" text-anchor="middle" font-family="JetBrains Mono">DOE合約</text>
+
+            <circle cx="400" cy="115" r="4" fill="#ff4d6d"/>
+            <text x="400" y="135" font-size="9" fill="#ff4d6d" text-anchor="middle" font-family="JetBrains Mono">Q4 miss</text>
+
+            <circle cx="520" cy="40" r="4" fill="#ffb547"/>
+            <text x="520" y="32" font-size="9" fill="#ffb547" text-anchor="middle" font-family="JetBrains Mono">$900M合約</text>
+
+            <text x="4" y="20" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$300</text>
+            <text x="4" y="60" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$200</text>
+            <text x="4" y="115" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$100</text>
+            <text x="4" y="170" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$30</text>
+          </svg>
+          <div class="chart-legend">
+            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#ff4d6d"></span>低點/打擊</div>
+            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#00d09c"></span>政策利多</div>
+            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#ffb547"></span>合約簽訂</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TIMELINE -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">📜</span>關鍵歷史事件</h3>
+        </div>
+        <div class="timeline">
+          <div class="tl-item crash">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2014-2018 <span class="tl-impact">瀕臨破產</span></div>
+              <div class="tl-headline">USEC 重組為 Centrus，penny stock 時代</div>
+              <p class="tl-body">前身 USEC 因失去 DOE 主要合約於 2014 年破產重組為 Centrus。股價長期在 $2-5 區間徘徊，市場一度認為這家公司沒救了。當時鈾濃縮業務被視為夕陽產業，俄羅斯 TENEX 主宰全球。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2019.05 <span class="tl-impact">起死回生</span></div>
+              <div class="tl-headline">獲得首份 DOE HALEU 示範合約</div>
+              <p class="tl-body">DOE 選定 Centrus 部署美國離心機示範串聯。這是公司轉型的關鍵起點，從此切入下世代反應爐燃料賽道。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2022.02 <span class="tl-impact">+300% (年)</span></div>
+              <div class="tl-headline">俄烏戰爭爆發，西方脫鉤 TENEX</div>
+              <p class="tl-body">俄羅斯入侵烏克蘭，美國通過《禁止俄羅斯鈾進口法》。美國反應爐約 20% 燃料來自俄羅斯 TENEX，急需本土替代。Centrus 成為唯一選項。股價從 $20 衝到 $50+。</p>
+            </div>
+          </div>
+
+          <div class="tl-item major">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2022.11 <span class="tl-impact">合約簽訂</span></div>
+              <div class="tl-headline">DOE 1.5 億美元 HALEU 營運合約</div>
+              <p class="tl-body">與 DOE 簽訂三階段 HALEU 營運合約，基本合約值 1.5 億美元，含三個延長選項（最多 9 年產能）。這是 LEU 商業模式的基石。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2023.11 <span class="tl-impact">里程碑</span></div>
+              <div class="tl-headline">首批 HALEU 完成交付，Phase 1 結束</div>
+              <p class="tl-body">Centrus 於俄亥俄州 Piketon 工廠成功生產 20 公斤 HALEU 並交付 DOE，這是美國 70 年來第一座美國設計、美國擁有的濃縮工廠投產。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2025.06 <span class="tl-impact">Phase 2 達標</span></div>
+              <p class="tl-body">完成 900 公斤 HALEU 交付，Phase 2 結束。DOE 授予一年延長合約至 2026.06，可再延長 8 年。</p>
+            </div>
+          </div>
+
+          <div class="tl-item major">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2025.12 <span class="tl-impact">升板NYSE</span></div>
+              <p class="tl-body">從 NYSE American 升至紐約證交所主板，正式進入大型基金可投資範圍，被動買盤湧入。</p>
+            </div>
+          </div>
+
+          <div class="tl-item major">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2026.01 <span class="tl-impact">+$900M 合約</span></div>
+              <div class="tl-headline">DOE 重磅 9 億美元 HALEU 任務訂單</div>
+              <p class="tl-body">DOE 授予 9 億美元（可超過 10 億）HALEU 商業化擴產合約。Centrus 開始建造 AC100M 離心機串聯，目標年產 12 公噸 HALEU。</p>
+            </div>
+          </div>
+
+          <div class="tl-item crash">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2026.02 <span class="tl-impact">-15%</span></div>
+              <p class="tl-body">Q4 2025 財報未達預期，營收 EPS 雙雙 miss，盤後重挫。短期回檔健康，長期 thesis 不變。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2026.05 <span class="tl-impact">Backlog 39億</span></div>
+              <p class="tl-body">Q1 2026 公告 LEU segment backlog 達 23 億美元 + Technical Solutions 8 億，總訂單 39 億美元，創歷史新高。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VALUE CHAIN -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">🔗</span>上下游產業鏈位置</h3>
+        </div>
+        <div class="chain">
+          <div class="chain-row">
+            <div class="chain-col">
+              <div class="chain-col-head">上游</div>
+              <div class="chain-node">Cameco UF6<span class="small">原料供應</span></div>
+              <div class="chain-node">Orano (法)<span class="small">轉化服務</span></div>
+              <div class="chain-node">天然鈾市場<span class="small">現貨採購</span></div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-col">
+              <div class="chain-col-head">核心業務</div>
+              <div class="chain-node highlight">LEU 濃縮<br>Piketon, OH<span class="small">商業反應爐</span></div>
+              <div class="chain-node highlight">HALEU 濃縮<br>5-20% U-235<span class="small">獨佔! 美唯一</span></div>
+              <div class="chain-node">技術服務<span class="small">DOE 工程</span></div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-col">
+              <div class="chain-col-head">下游客戶</div>
+              <div class="chain-node">美國公用事業<span class="small">取代TENEX</span></div>
+              <div class="chain-node">SMR 業者<span class="small">Oklo, X-energy</span></div>
+              <div class="chain-node">DOE / NNSA<span class="small">政府訂單</span></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:var(--text-faint);margin-top:10px;line-height:1.6;">★ LEU 在 <strong style="color:var(--gold)">HALEU 濃縮環節是美國唯一商業化供應商</strong>。一旦下游 SMR 商業化，幾乎所有訂單會流向 LEU（直到 BWX Technologies 2030 後加入競爭）。</p>
+      </section>
+
+      <!-- MOAT -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">🏰</span>護城河 vs 風險</h3>
+        </div>
+        <div class="moat-grid">
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">🥇</div>
+              <div class="moat-item-title">獨佔地位</div>
+            </div>
+            <p class="moat-item-body">美國目前唯一具備 HALEU 商業生產許可的公司。Piketon 工廠是美國 70 年來第一座本土技術濃縮廠。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">📜</div>
+              <div class="moat-item-title">政府背書</div>
+            </div>
+            <p class="moat-item-body">DOE 累計授予合約超 10 億美元，國家安全屬性。NNSA 通知將以單一來源從 Centrus 採購特定濃縮服務。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">📦</div>
+              <div class="moat-item-title">23 億美元 backlog</div>
+            </div>
+            <p class="moat-item-body">商業 LEU 合約 backlog 達 23 億美元，提供 5-7 年營收能見度。客戶包含美國多家核電業者。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">💵</div>
+              <div class="moat-item-title">現金部位充足</div>
+            </div>
+            <p class="moat-item-body">帳上現金 18.7 億美元（vs 長債 12.1 億），有充分彈藥執行 Piketon 擴建計畫，不需大規模增資稀釋。</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">⚔️</div>
+              <div class="moat-item-title">BWX 未來競爭</div>
+            </div>
+            <p class="moat-item-body">UBS 警示 BWX Technologies 規劃建造國防專用濃縮設施。2030 後 LEU 的國防業務可能流失。</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">🎢</div>
+              <div class="moat-item-title">極端波動</div>
+            </div>
+            <p class="moat-item-body">Beta 2.5，年化波動率 ~75%。是 S&P 500 的 4 倍。Q1 SWU 銷量年減 47%，營收極不穩定。</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">🗳️</div>
+              <div class="moat-item-title">政策依賴度高</div>
+            </div>
+            <p class="moat-item-body">公司命脈幾乎全押在美國政府訂單。若政黨輪替後核能政策轉向，估值會被腰斬。</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">⏳</div>
+              <div class="moat-item-title">執行風險</div>
+            </div>
+            <p class="moat-item-body">Piketon 擴建需要 100+ 新員工 + 數千離心機。任何工程延誤都會打擊估值。SMR 商業化進度若延後，需求面也會晚到。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CATALYSTS -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">🚀</span>未來催化劑</h3>
+        </div>
+        <div class="cat-grid">
+          <div class="cat-item near">
+            <div class="cat-when">2026<br>H2</div>
+            <div class="cat-content">
+              <div class="cat-title">9 億合約最終定案</div>
+              <p class="cat-desc">9 億美元 HALEU 合約完成正式談判定稿，可能擴大至 10 億+。</p>
+            </div>
+          </div>
+          <div class="cat-item near">
+            <div class="cat-when">2026<br>Q4</div>
+            <div class="cat-content">
+              <div class="cat-title">與 Oklo 合資 Deconversion</div>
+              <p class="cat-desc">與 Oklo 探索 HALEU deconversion 合資，補齊下游服務鏈。商業上目前無人提供。</p>
+            </div>
+          </div>
+          <div class="cat-item mid">
+            <div class="cat-when">2027</div>
+            <div class="cat-content">
+              <div class="cat-title">Piketon 商業擴產投產</div>
+              <p class="cat-desc">12 公噸 HALEU 年產能逐步釋放，營收有望從 4.5 億跳到 8-12 億美元級別。</p>
+            </div>
+          </div>
+          <div class="cat-item far">
+            <div class="cat-when">2028+</div>
+            <div class="cat-content">
+              <div class="cat-title">SMR 商業反應爐運轉</div>
+              <p class="cat-desc">Oklo、X-energy 首批反應爐預計 2028-2030 運轉，LEU 從研發訂單轉為穩定商業訂單。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VALUATION -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">📐</span>關鍵估值指標</h3>
+          <span class="sect-badge">2026 Q1</span>
+        </div>
+        <div class="val-table">
+          <div class="val-row"><span class="v-label">市值</span><span class="v-val">~$4.5B</span></div>
+          <div class="val-row"><span class="v-label">2025 全年營收</span><span class="v-val">$448.7M</span></div>
+          <div class="val-row"><span class="v-label">2025 全年淨利</span><span class="v-val">$77.8M</span></div>
+          <div class="val-row"><span class="v-label">2026E 營收區間</span><span class="v-val" style="color:var(--green)">$450-500M</span></div>
+          <div class="val-row"><span class="v-label">Backlog (LEU + Tech)</span><span class="v-val" style="color:var(--gold)">$3.9B</span></div>
+          <div class="val-row"><span class="v-label">現金 / 有價證券</span><span class="v-val" style="color:var(--green)">$1.87B</span></div>
+          <div class="val-row"><span class="v-label">長期負債</span><span class="v-val">$1.21B</span></div>
+          <div class="val-row"><span class="v-label">12 個月目標價（共識）</span><span class="v-val" style="color:var(--gold)">$255.55</span></div>
+          <div class="val-row"><span class="v-label">分析師最高/最低目標</span><span class="v-val">$409 / $138</span></div>
+        </div>
+      </section>
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- ============== UUUU · ENERGY FUELS =================== -->
+    <!-- ===================================================== -->
+    <div class="page" data-page="UUUU">
+
+      <div class="co-hero">
+        <div class="co-hero-head">
+          <div class="co-logo co-logo-uuuu">UUU</div>
+          <div>
+            <div class="co-name">Energy Fuels</div>
+            <div class="co-tick">NYSE American: UUUU · 美國 · 1987</div>
+          </div>
+        </div>
+        <p class="co-tagline">美國最大鈾礦商 + 唯一商業重稀土加工，雙引擎賭注</p>
+        <div class="co-stats">
+          <div class="co-stat"><div class="label">現價 ($)</div><div class="val">~21.77</div></div>
+          <div class="co-stat"><div class="label">市值</div><div class="val">~$4.5B</div></div>
+          <div class="co-stat"><div class="label">5Y 年化</div><div class="val up">+30.6%</div></div>
+          <div class="co-stat"><div class="label">Beta</div><div class="val">2.3</div></div>
+        </div>
+      </div>
+
+      <!-- CHART -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">📈</span>歷史價格軌跡</h3>
+          <span class="sect-badge">2007-2026</span>
+        </div>
+        <div class="chart-wrap">
+          <div class="chart-head">
+            <span class="chart-title">UUUU 股價歷史</span>
+            <span class="chart-meta">USD · 從 $0.78 到全時高 $240</span>
+          </div>
+          <svg class="chart-svg" viewBox="0 0 600 220" preserveAspectRatio="none">
+            <defs>
+              <linearGradient id="uuuuGrad" x1="0" y1="0" x2="0" y2="1">
+                <stop offset="0%" stop-color="#ff7a59" stop-opacity="0.4"/>
+                <stop offset="100%" stop-color="#ff7a59" stop-opacity="0"/>
+              </linearGradient>
+            </defs>
+            <line x1="0" y1="55" x2="600" y2="55" stroke="#232a36" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="0" y1="110" x2="600" y2="110" stroke="#232a36" stroke-width="1" stroke-dasharray="3,3"/>
+            <line x1="0" y1="165" x2="600" y2="165" stroke="#232a36" stroke-width="1" stroke-dasharray="3,3"/>
+
+            <!-- 2007 ATH $240, post-Fukushima 跌至 $5-15, 2020 低 $0.78, 2021 meme rally 到 $11, 2024 漲到 $8-10, 2026 衝 $21+ -->
+            <path d="M 0 10 L 30 30 L 60 70 L 100 200 L 200 195 L 280 215 L 320 210 L 380 170 L 420 145 L 460 130 L 500 110 L 540 85 L 580 70 L 600 75"
+                  stroke="#ff7a59" stroke-width="2" fill="none"/>
+            <path d="M 0 10 L 30 30 L 60 70 L 100 200 L 200 195 L 280 215 L 320 210 L 380 170 L 420 145 L 460 130 L 500 110 L 540 85 L 580 70 L 600 75 L 600 220 L 0 220 Z"
+                  fill="url(#uuuuGrad)"/>
+
+            <circle cx="30" cy="30" r="4" fill="#ffb547"/>
+            <text x="30" y="22" font-size="9" fill="#ffb547" text-anchor="middle" font-family="JetBrains Mono">ATH $240</text>
+
+            <circle cx="100" cy="200" r="4" fill="#ff4d6d"/>
+            <text x="100" y="218" font-size="9" fill="#ff4d6d" text-anchor="middle" font-family="JetBrains Mono">福島</text>
+
+            <circle cx="280" cy="215" r="4" fill="#ff4d6d"/>
+            <text x="280" y="208" font-size="9" fill="#ff4d6d" text-anchor="middle" font-family="JetBrains Mono">$0.78</text>
+
+            <circle cx="380" cy="170" r="4" fill="#00d09c"/>
+            <text x="380" y="188" font-size="9" fill="#00d09c" text-anchor="middle" font-family="JetBrains Mono">稀土轉型</text>
+
+            <circle cx="540" cy="85" r="4" fill="#00d09c"/>
+            <text x="540" y="78" font-size="9" fill="#00d09c" text-anchor="middle" font-family="JetBrains Mono">中國管制</text>
+
+            <text x="4" y="20" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$240</text>
+            <text x="4" y="60" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$30</text>
+            <text x="4" y="115" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$10</text>
+            <text x="4" y="170" font-size="9" fill="#5a6478" font-family="JetBrains Mono">$2</text>
+          </svg>
+          <div class="chart-legend">
+            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#ff4d6d"></span>崩盤</div>
+            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#00d09c"></span>策略轉型</div>
+            <div class="chart-legend-item"><span class="chart-legend-dot" style="background:#ffb547"></span>歷史高點</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TIMELINE -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">📜</span>關鍵歷史事件</h3>
+        </div>
+        <div class="timeline">
+          <div class="tl-item major">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2007.04 <span class="tl-impact">歷史高點</span></div>
+              <div class="tl-headline">UUUU 創下 $240 全時高點</div>
+              <p class="tl-body">鈾價泡沫巔峰，市場狂熱買進任何「鈾」字股。當時 UUUU 還是初創礦商，估值完全脫離基本面。</p>
+            </div>
+          </div>
+
+          <div class="tl-item crash">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2011-2020 <span class="tl-impact">-99.7%</span></div>
+              <div class="tl-headline">福島後失落 10 年，跌至 $0.78</div>
+              <p class="tl-body">從 $240 一路跌到 2020.03 的 $0.78，跌幅 99.7%！多次面臨被下市風險，靠多輪增資稀釋老股東勉強撐住。這是純鈾礦小公司最黑暗的 10 年。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2021.02 <span class="tl-impact">+1300%</span></div>
+              <div class="tl-headline">Reddit meme + 鈾 ETF 拉抬，從 $0.78 衝到 $11</div>
+              <p class="tl-body">WallStreetBets 帶動鈾礦軋空潮（追隨 Sprott Physical Uranium Trust 對現貨鈾的囤積）。UUUU 一年漲 1300%。但這只是序曲。</p>
+            </div>
+          </div>
+
+          <div class="tl-item major">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2022.12 <span class="tl-impact">戰略轉型</span></div>
+              <div class="tl-headline">White Mesa Mill 改造為稀土加工設施</div>
+              <p class="tl-body">公司大膽決策：用既有的鈾廠化學能力轉做重稀土。投資 SX 線可年產 850-1,000 噸 NdPr。這是從「衰退鈾礦商」變身「美國關鍵礦物玩家」的關鍵時刻。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2024.01 <span class="tl-impact">+426%/年</span></div>
+              <p class="tl-body">中國開始限制重稀土出口，UUUU 從 $5 衝上 $11。年初分析師上調目標價，市場開始把它當稀土股而非鈾股交易。</p>
+            </div>
+          </div>
+
+          <div class="tl-item surge">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2025.04 <span class="tl-impact">首批產出</span></div>
+              <div class="tl-headline">產出美國首公斤鋱（Tb）氧化物</div>
+              <p class="tl-body">White Mesa Mill 試產級鏑（Dy）和鋱（Tb）成功 — 數十年來美國本土首次商業生產。電動車馬達磁鐵核心材料。</p>
+            </div>
+          </div>
+
+          <div class="tl-item crash">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2025.全年 <span class="tl-impact">虧損加劇</span></div>
+              <p class="tl-body">2025 營收 $65.9M 年減 15.6%，虧損 $85.6M 年增 79.3%！轉型期成本壓力極大，投資人開始質疑「故事股」遲遲不兌現。</p>
+            </div>
+          </div>
+
+          <div class="tl-item major">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2026.01 <span class="tl-impact">關稅暴漲</span></div>
+              <div class="tl-headline">中國重稀土出口管制升級 + 美國啟動 Project Vault</div>
+              <p class="tl-body">川普政府宣布 120 億美元關鍵礦物計畫「Project Vault」，UUUU 為主要受益者。同月稀土股集體暴漲，UUUU 衝上 $25 區間。</p>
+            </div>
+          </div>
+
+          <div class="tl-item major">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2026.04 <span class="tl-impact">新CEO</span></div>
+              <p class="tl-body">Mark Chalmers 退休，Ross R. Bhappu 接任 CEO。市場對新管理層的執行力存疑，但分析師仍維持 Strong Buy。</p>
+            </div>
+          </div>
+
+          <div class="tl-item crash">
+            <div class="tl-dot"></div>
+            <div class="tl-card">
+              <div class="tl-date">2026.03 <span class="tl-impact">內部賣壓</span></div>
+              <p class="tl-body">公司多位高階主管（VP、董事）連續減持。VP 賣 25,000 股 + 5,000 股 + 15,000 股，市場解讀為「故事兌現難度高」。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VALUE CHAIN -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">🔗</span>上下游產業鏈位置</h3>
+        </div>
+        <div class="chain">
+          <div class="chain-row">
+            <div class="chain-col">
+              <div class="chain-col-head">上游</div>
+              <div class="chain-node">Pinyon Plain<span class="small">高品位鈾</span></div>
+              <div class="chain-node">Donald Project (澳)<span class="small">獨居石</span></div>
+              <div class="chain-node">Bahia (巴)<span class="small">重砂礦</span></div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-col">
+              <div class="chain-col-head">核心加工</div>
+              <div class="chain-node highlight">White Mesa Mill<span class="small">全美唯一</span></div>
+              <div class="chain-node highlight">鈾＋稀土<br>共用化學<span class="small">SX 萃取</span></div>
+              <div class="chain-node">釩 / 醫療同位素<span class="small">副產品</span></div>
+            </div>
+            <div class="chain-arrow">→</div>
+            <div class="chain-col">
+              <div class="chain-col-head">下游客戶</div>
+              <div class="chain-node">美核電廠<span class="small">鈾長約</span></div>
+              <div class="chain-node">電動車 OEM<span class="small">磁鐵Dy/Tb</span></div>
+              <div class="chain-node">國防工業<span class="small">飛彈系統</span></div>
+            </div>
+          </div>
+        </div>
+        <p style="font-size:11.5px;color:var(--text-faint);margin-top:10px;line-height:1.6;">★ White Mesa Mill 是<strong style="color:var(--gold)">全美唯一獲准同時處理鈾礦＋獨居石稀土的設施</strong>，物理護城河極深。但業務分散是雙面刃。</p>
+      </section>
+
+      <!-- MOAT -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">🏰</span>護城河 vs 風險</h3>
+        </div>
+        <div class="moat-grid">
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">🏭</div>
+              <div class="moat-item-title">獨家許可</div>
+            </div>
+            <p class="moat-item-body">White Mesa Mill 是美國唯一商業運轉的鈾鎂礦加工廠，且唯一獲准處理獨居石。許可證難以複製。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">💰</div>
+              <div class="moat-item-title">超強現金部位</div>
+            </div>
+            <p class="moat-item-body">營運資金 9.566 億美元（含 8 億有價證券），財務彈藥充足，可不靠增資撐過轉型期。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">🛡️</div>
+              <div class="moat-item-title">中國脫鉤對沖</div>
+            </div>
+            <p class="moat-item-body">中國控制全球 ~85% 重稀土加工。UUUU 是少數的「非中國」重稀土選項，地緣價值極高。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">📜</div>
+              <div class="moat-item-title">2032 長約</div>
+            </div>
+            <p class="moat-item-body">鈾長期銷售合約簽到 2032 年，提供穩定基本盤。</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">📉</div>
+              <div class="moat-item-title">獲利不穩</div>
+            </div>
+            <p class="moat-item-body">2025 虧損年增 79.3%，營收年減 15.6%。轉型期燒錢嚴重，何時轉正仍未明朗。</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">🧩</div>
+              <div class="moat-item-title">業務太分散</div>
+            </div>
+            <p class="moat-item-body">鈾＋稀土＋釩＋重砂＋醫療同位素，5 條業務線都還沒哪條獨大。巴菲特派：「多元化是無知者的保護。」</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">⚖️</div>
+              <div class="moat-item-title">規模小</div>
+            </div>
+            <p class="moat-item-body">鈾產量遠不及 CCJ，稀土產量遠不及 MP Materials。在每個領域都是 follower。</p>
+          </div>
+          <div class="moat-item moat-neg">
+            <div class="moat-item-head">
+              <div class="moat-icon">⏳</div>
+              <div class="moat-item-title">執行不確定</div>
+            </div>
+            <p class="moat-item-body">新 CEO 2026/04 接任，Phase 2 稀土產線需要時間放量。內部人賣壓不是好訊號。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- CATALYSTS -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">🚀</span>未來催化劑</h3>
+        </div>
+        <div class="cat-grid">
+          <div class="cat-item near">
+            <div class="cat-when">2026<br>H2</div>
+            <div class="cat-content">
+              <div class="cat-title">中國稀土管制升級</div>
+              <p class="cat-desc">中美貿易戰若再度激化，重稀土出口配額是中國最強籌碼。每次新一輪管制，UUUU 預期 +20-40%。</p>
+            </div>
+          </div>
+          <div class="cat-item near">
+            <div class="cat-when">2026<br>Q4</div>
+            <div class="cat-content">
+              <div class="cat-title">Project Vault 訂單兌現</div>
+              <p class="cat-desc">美國國防部 120 億美元關鍵礦物計畫，UUUU 有望分到稀土加工合約。</p>
+            </div>
+          </div>
+          <div class="cat-item mid">
+            <div class="cat-when">2027</div>
+            <div class="cat-content">
+              <div class="cat-title">Phase 2 稀土產線投產</div>
+              <p class="cat-desc">獨立 Phase 2 SX 線投產，總產能擴至 6,000 噸 NdPr + 240 噸 Dy + 66 噸 Tb，營收翻倍。</p>
+            </div>
+          </div>
+          <div class="cat-item far">
+            <div class="cat-when">2028+</div>
+            <div class="cat-content">
+              <div class="cat-title">Donald Project 投產</div>
+              <p class="cat-desc">澳洲合資的獨居石礦山投產，提供長期穩定原料給 White Mesa。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VALUATION -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">📐</span>關鍵估值指標</h3>
+          <span class="sect-badge">2026 Q1</span>
+        </div>
+        <div class="val-table">
+          <div class="val-row"><span class="v-label">市值</span><span class="v-val">~$4.5B</span></div>
+          <div class="val-row"><span class="v-label">2025 全年營收</span><span class="v-val">$65.9M</span></div>
+          <div class="val-row"><span class="v-label">2025 全年淨利</span><span class="v-val" style="color:var(--red)">-$85.6M</span></div>
+          <div class="val-row"><span class="v-label">營收年增率</span><span class="v-val" style="color:var(--red)">-15.6%</span></div>
+          <div class="val-row"><span class="v-label">營運資金</span><span class="v-val" style="color:var(--green)">$956.6M</span></div>
+          <div class="val-row"><span class="v-label">現金</span><span class="v-val">$108.4M</span></div>
+          <div class="val-row"><span class="v-label">有價證券</span><span class="v-val">$802.2M</span></div>
+          <div class="val-row"><span class="v-label">Phase 2 NPV</span><span class="v-val" style="color:var(--gold)">$1.9B</span></div>
+          <div class="val-row"><span class="v-label">12 個月共識目標</span><span class="v-val">$19.92</span></div>
+          <div class="val-row"><span class="v-label">分析師最高目標</span><span class="v-val" style="color:var(--gold)">$34.19</span></div>
+        </div>
+      </section>
+    </div>
+
+
+    <!-- ===================================================== -->
+    <!-- ============== TREND PAGE ============================ -->
+    <!-- ===================================================== -->
+    <div class="page" data-page="TREND">
+
+      <div class="co-hero">
+        <div class="co-hero-head">
+          <div class="co-logo" style="background:var(--purple);color:white;">📊</div>
+          <div>
+            <div class="co-name">產業趨勢分析</div>
+            <div class="co-tick">URANIUM SECTOR · MACRO VIEW</div>
+          </div>
+        </div>
+        <p class="co-tagline">理解鈾礦循環，比挑選個股更重要</p>
+        <div class="co-stats">
+          <div class="co-stat"><div class="label">鈾現貨</div><div class="val up">$84.50</div></div>
+          <div class="co-stat"><div class="label">SWU</div><div class="val up">$182</div></div>
+          <div class="co-stat"><div class="label">全球新建反應爐</div><div class="val">62 座</div></div>
+          <div class="co-stat"><div class="label">2050 容量</div><div class="val up">2x</div></div>
+        </div>
+      </div>
+
+      <!-- COMPARE -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">⚖️</span>三檔並列比較</h3>
+        </div>
+        <div class="compare-table">
+          <div class="compare-row head">
+            <div>指標</div>
+            <div class="ccj-h">CCJ</div>
+            <div class="leu-h">LEU</div>
+            <div class="uuuu-h">UUUU</div>
+          </div>
+          <div class="compare-row">
+            <div>市值</div><div>$52B</div><div>$4.5B</div><div>$4.5B</div>
+          </div>
+          <div class="compare-row">
+            <div>2025 營收</div><div>$3.2B</div><div>$449M</div><div>$66M</div>
+          </div>
+          <div class="compare-row">
+            <div>2025 淨利</div><div style="color:var(--green)">+正</div><div style="color:var(--green)">+$78M</div><div style="color:var(--red)">-$86M</div>
+          </div>
+          <div class="compare-row">
+            <div>Beta</div><div>1.6</div><div>2.5</div><div>2.3</div>
+          </div>
+          <div class="compare-row">
+            <div>年化波動</div><div>~45%</div><div>~75%</div><div>~70%</div>
+          </div>
+          <div class="compare-row">
+            <div>5Y 累計報酬</div><div style="color:var(--green)">+1,260%</div><div style="color:var(--green)">+3,400%</div><div style="color:var(--green)">+260%</div>
+          </div>
+          <div class="compare-row">
+            <div>業務性質</div><div>大宗商品</div><div>政府合約</div><div>多元混合</div>
+          </div>
+          <div class="compare-row">
+            <div>適合誰</div><div>保守/平衡</div><div>進取/激進</div><div>對沖/題材</div>
+          </div>
+        </div>
+      </section>
+
+      <!-- TREND 1: PRICE CYCLE -->
+      <section class="sect">
+        <div class="trend-card">
+          <div class="trend-head">
+            <div class="trend-icon-big" style="background:var(--gold-bg);">🔄</div>
+            <div>
+              <div class="trend-tit">鈾價超級週期</div>
+              <div class="trend-sub">URANIUM SUPER-CYCLE · 2003-2026</div>
+            </div>
+          </div>
+          <div class="trend-body">
+            <p>鈾市場是<strong>典型的長週期商品</strong>：礦場從探勘到投產要 10-15 年，無法用「軟體升級」加速。2003-2007 那波從 $10 漲到 $137，靠的是中印核電擴張預期 + 礦商長期投資不足。</p>
+            <p>2011 福島後，鈾價跌到 $35 並橫盤 10 年，期間礦商關礦、破產、整併。<strong>所有目前還活著的玩家（CCJ、Kazatomprom）都是熬出來的</strong>。</p>
+            <p>2024 鈾價重返 $100+，這波驅動力跟上次完全不同：<strong>AI 數據中心耗電 + 西方脫鉤俄羅斯 + COP28 三倍核能宣言</strong>。Citi 預期 2026 年內挑戰 $125。</p>
+            <p>結構性短缺：全球年需求 ~180M lbs，產量 ~140M lbs，缺口要靠庫存填補。庫存逐年下降，這個失衡至少持續到 2030 年。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TREND 2: POLICY -->
+      <section class="sect">
+        <div class="trend-card">
+          <div class="trend-head">
+            <div class="trend-icon-big" style="background:var(--blue-bg);">🏛️</div>
+            <div>
+              <div class="trend-tit">美國政策軌跡</div>
+              <div class="trend-sub">POLICY TIMELINE · 2022-2026</div>
+            </div>
+          </div>
+          <div class="trend-body">
+            <p><strong>2022 IRA 法案：</strong>核電廠生產稅抵免 (PTC) $15/MWh，老舊核電廠延役有政策支持。</p>
+            <p><strong>2023 Inflation Reduction Act 強化：</strong>HALEU 開發專款 7 億美元投入 DOE。LEU 直接受益。</p>
+            <p><strong>2024.05 禁止俄羅斯鈾進口法：</strong>美國反應爐 20% 燃料來自俄羅斯 TENEX，2028 年完全禁絕。CCJ、LEU 是替代來源。</p>
+            <p><strong>2025 Trump 第二任：</strong>核電政策延續且加碼。能源部長承諾首批 5-10 座新反應爐取得 DOE 貸款。</p>
+            <p><strong>2026.01 Project Vault：</strong>120 億美元關鍵礦物計畫，鈾與稀土雙雙受益。</p>
+            <p><strong>2026.04 $80B 商務部協議：</strong>與 CCJ + Brookfield + Westinghouse 簽署新反應爐戰略合作。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TREND 3: GEOPOLITICS -->
+      <section class="sect">
+        <div class="trend-card">
+          <div class="trend-head">
+            <div class="trend-icon-big" style="background:var(--red-bg);">🌐</div>
+            <div>
+              <div class="trend-tit">地緣政治格局</div>
+              <div class="trend-sub">GEOPOLITICS · 供應鏈重組</div>
+            </div>
+          </div>
+          <div class="trend-body">
+            <p><strong>鈾礦供應集中度高：</strong>哈薩克 39% + 加拿大 22% + 澳洲 10% = 全球 71%。哈薩克是俄羅斯影響範圍，西方買家逐步轉向加拿大（CCJ 主場）。</p>
+            <p><strong>濃縮服務寡占：</strong>俄羅斯 TENEX 控制全球 ~40% 商業 SWU 產能、~25% LEU。西方替代的選項只有 Orano（法）、Urenco（歐）、LEU（美）。</p>
+            <p><strong>稀土戰場：</strong>中國控制全球 70% 開採 + 85% 加工 + 90%+ 重稀土。每次中美緊張，鈰、釹、鏑、鋱出口配額就是談判籌碼。UUUU 是少數的非中國重稀土選項。</p>
+            <p><strong>新興玩家：</strong>BWX Technologies (BWXT) 規劃國防專用濃縮設施，2030 年後可能挑戰 LEU。Lightbridge、Oklo 則在燃料設計層面創新。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TREND 4: DEMAND -->
+      <section class="sect">
+        <div class="trend-card">
+          <div class="trend-head">
+            <div class="trend-icon-big" style="background:var(--green-bg);">⚡</div>
+            <div>
+              <div class="trend-tit">需求面結構轉變</div>
+              <div class="trend-sub">DEMAND · AI + DECARBONIZATION</div>
+            </div>
+          </div>
+          <div class="trend-body">
+            <p><strong>AI 數據中心：</strong>單一輝達 GPU 機架耗電是傳統伺服器的 10 倍。微軟、Google、Amazon 已簽 SMR 採購意向書。CEG 與微軟簽 20 年契約供電給 Three Mile Island 重啟。</p>
+            <p><strong>COP28 三倍核能宣言：</strong>22 國承諾 2050 年前將核能裝置容量提升 3 倍。IAEA 估計 2050 年全球核電容量可能翻倍。</p>
+            <p><strong>SMR 商業化：</strong>NuScale、Oklo、X-energy、TerraPower、Westinghouse AP300 全部進入 NRC 認證程序。2028-2030 將迎來首批商業 SMR 投運。SMR 多數需要 HALEU 燃料 → LEU 直接受益。</p>
+            <p><strong>反應爐延役：</strong>美國平均反應爐執照延長到 80 年（原本 40 年）。每多一年運轉 = 多一年鈾需求。</p>
+            <p><strong>數字：</strong>全球目前 60+ 反應爐興建中，100+ 規劃中。長達 10 年的鎖定需求已成定局。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- TREND 5: RISKS -->
+      <section class="sect">
+        <div class="trend-card">
+          <div class="trend-head">
+            <div class="trend-icon-big" style="background:var(--red-bg);">⚠️</div>
+            <div>
+              <div class="trend-tit">主要尾部風險</div>
+              <div class="trend-sub">TAIL RISKS · 不能忽視的黑天鵝</div>
+            </div>
+          </div>
+          <div class="trend-body">
+            <p><strong>另一次核災：</strong>福島讓全球核電倒退 10 年。下一次（土耳其、伊朗、巴基斯坦地震帶或老舊反應爐）會立刻終結這波牛市。</p>
+            <p><strong>政策反轉：</strong>美國 2028 大選若民主黨進步派執政，可能砍掉核電補貼。德國 2011 後廢核的故事可能在其他國家上演。</p>
+            <p><strong>SMR 商業化跳票：</strong>NuScale 2024 已取消首個 UAMPS 商業項目。如果 2028-2030 SMR 仍未經濟運轉，HALEU 需求劇本崩塌，LEU 估值腰斬。</p>
+            <p><strong>哈薩克供應放大：</strong>Kazatomprom 若擴產 30%+，鈾價可能短線回測 $50。</p>
+            <p><strong>替代能源突破：</strong>核融合（Helion、TAE、Commonwealth Fusion）若 2030 年前商業化，整個鈾礦 thesis 重寫。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- INVESTOR TYPE -->
+      <section class="sect">
+        <div class="sect-head">
+          <h3 class="sect-title"><span class="icon-box">👥</span>不同投資人怎麼選</h3>
+        </div>
+        <div class="moat-grid">
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">🛡️</div>
+              <div class="moat-item-title">保守派</div>
+            </div>
+            <p class="moat-item-body">買 URA 或 URNM ETF 分散風險。要單押個股就選 CCJ — 大型、長約結構、跟 Westinghouse 綁定。預期 3 年 +30-50%。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">⚖️</div>
+              <div class="moat-item-title">平衡派</div>
+            </div>
+            <p class="moat-item-body">CCJ 60% + LEU 25% + UUUU 15%。分批 3-6 個月建倉，單檔停損 -25%。預期 3 年 +50-80%。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">🔥</div>
+              <div class="moat-item-title">激進派</div>
+            </div>
+            <p class="moat-item-body">LEU 為主力 50-60%，UUUU 衛星 20-25%，留 CCJ 20% 壓艙。Bull 情境 18 個月翻倍以上。下檔風險也最大。</p>
+          </div>
+          <div class="moat-item moat-pos">
+            <div class="moat-item-head">
+              <div class="moat-icon">🎯</div>
+              <div class="moat-item-title">事件交易者</div>
+            </div>
+            <p class="moat-item-body">三檔都是事件驅動股 — 鈾價週報、DOE 合約、稀土管制、財報季都是進出點。設停損、不融資，吃催化劑短線。</p>
+          </div>
+        </div>
+      </section>
+
+      <div class="disclaimer">
+        <span class="disclaimer-icon">⚠️</span>
+        <span>本研究基於 2026/05 公開資料整理，非投資建議。鈾礦類股週期性極強，歷史上多次出現 -90% 跌幅。投資前請審慎評估個人風險承受度。手續費、稅負、匯損未計入。</span>
+      </div>
+    </div>
+  </main>
+
+  <footer class="footer">
+    U-STREAM RESEARCH · 2026 · 資料：公司財報、SEC、Stockanalysis、Seeking Alpha、Wikipedia、TradingView
+  </footer>
+</div>
+
+<script>
+// Tab switching
+document.querySelectorAll('.tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.co;
+    document.querySelectorAll('.page').forEach(p => {
+      p.classList.toggle('active', p.dataset.page === target);
+    });
+    // Scroll to top of content
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+});
+</script>
+</body>
+</html>
